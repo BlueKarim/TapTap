@@ -19,7 +19,6 @@ class _MyAppState extends State<MyApp> {
   String textButton = 'Start';
   int score = 0;
   Timer? timer;
-  int i =4;
   List<bool> timeOut = [true,true,true,true,true];
 
   void btnTapme(){
@@ -42,19 +41,19 @@ class _MyAppState extends State<MyApp> {
       }
       else if(textButton=='Continue')
       {
-        restart();
-        timer?.cancel;
+        timer?.cancel();
         textButton='Restart';
       }
       else if(textButton=='Restart')
       {
+        restart();
         textButton = 'Start';
       }
     });
   }
   
   void timing(){
-    
+    int i =4;
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
         if(_counter>0)
@@ -69,7 +68,9 @@ class _MyAppState extends State<MyApp> {
           i--;
           if(i<0)
           {
+            _counter =0;
             textButton='Continue';
+            timer.cancel();
           }
         }
       });
@@ -80,8 +81,6 @@ class _MyAppState extends State<MyApp> {
     score =0;
     _counter = 5;
     timeOut = [true,true,true,true,true];
-    textButton='Continue';
-    i=4;
   }
   @override
   void initState(){
@@ -92,41 +91,74 @@ class _MyAppState extends State<MyApp> {
     super.initState();
   }
   Widget build(BuildContext context) {
-    
+    Widget timeAndTap = Container(
+      child: 
+      Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text("Time : ",
+              style: TextStyle(
+                fontSize: 32,
+              ),),
+              Text(_counter.toString(),
+              style: TextStyle(
+                fontSize: 32,
+              ),),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text("Tap : ",
+              style: TextStyle(
+                fontSize: 32,
+                color: Colors.purple,
+              ),),
+              Text(tap.toString(),
+              style: TextStyle(
+                fontSize: 32,
+                color: Colors.purple,
+              ),),
+            ],
+          )
+      ] 
+      ),
+    );
     Widget life = Container(
+    padding: const EdgeInsets.all(20),
     child: 
     Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        Tab(
-          icon: timeOut[0]? const Icon(Icons.favorite,color: Colors.red,):const Icon(Icons.favorite_border,color: null,),),
-        Tab(
-          icon: timeOut[1]? const Icon(Icons.favorite,color: Colors.red,):const Icon(Icons.favorite_border,color: null,),),
-        Tab(
-          icon: timeOut[2]? const Icon(Icons.favorite,color: Colors.red,):const Icon(Icons.favorite_border,color: null,),),
-        Tab(
-          icon: timeOut[3]? const Icon(Icons.favorite,color: Colors.red,):const Icon(Icons.favorite_border,color: null,),),
-        Tab(
-          icon: timeOut[4]? const Icon(Icons.favorite,color: Colors.red,):const Icon(Icons.favorite_border,color: null,),),
+        for(int i =0;i<timeOut.length;i++)
+        Icon(
+          timeOut[i]? Icons.favorite : Icons.favorite_border,
+          color: timeOut[i]? Colors.red: null,
+          size: 64,
+        ),
       ],
     ),
   );
     Widget Diem = Container(
+    padding: const EdgeInsets.all(20) ,
     child: 
     Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Text(
           "Score :",
           style: TextStyle(
-            fontSize: 32,
+            fontSize: 64,
             color: Colors.red,
           ),
         ),
         Text(
           score.toString(),
           style: TextStyle(
-            fontSize: 32,
+            fontSize: 64,
             color: Colors.red,
           ),
         ),
@@ -144,43 +176,16 @@ class _MyAppState extends State<MyApp> {
         ),
         body: Center(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Diem,
-              life,
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text("Time : ",
-                      style: TextStyle(
-                        fontSize: 32,
-                      ),),
-                      Text(_counter.toString(),
-                      style: TextStyle(
-                        fontSize: 32,
-                      ),),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text("Tap : ",
-                      style: TextStyle(
-                        fontSize: 32,
-                        color: Colors.purple,
-                      ),),
-                      Text(tap.toString(),
-                      style: TextStyle(
-                        fontSize: 32,
-                        color: Colors.purple,
-                      ),),
-                    ],
-                  )
-              ] 
+                  Diem,
+                  life,
+                ],   
               ),
+              timeAndTap,
               ElevatedButton(
                 onPressed: btnTapme,
                 style: ElevatedButton.styleFrom(
