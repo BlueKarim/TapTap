@@ -1,31 +1,47 @@
 import 'dart:async';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
-class MyApp extends StatefulWidget {
-  const MyApp({ Key? key }) : super(key: key);
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp( // a material app is the root of any Flutter app
+      title: 'Stopwatch',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: MyHomePage(title: 'Stopwatch'),
+    );
+  }
+}
+
+class MyHomePage extends StatefulWidget {
+  MyHomePage({Key? key, required this.title}) : super(key: key);
+  final String title;
 
   @override
-  _MyAppState createState() => _MyAppState();
+  _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyAppState extends State<MyApp> {
-  int _counter = 5;
-  int tap = 0;
+class _MyHomePageState extends State<MyHomePage> {
   String textButton = 'Start';
   int score = 0;
-  Timer? timer;
+  int _counter = 10;
+  int tap =0;
   List<bool> timeOut = [true,true,true,true,true];
-
+  Timer? _timer; // the timer that controls to increment the counter once a second
+  int _countedSeconds = 0; // how many seconds have been counted so far, initialises to zero
+  Duration timedDuration = Duration.zero; // the duration of the timer so far, initialises to zero
+  bool _timerRunning = false; // the state of whether the timer is running or not
+  // final lapTimes = <Duration>[]; // can you figure out how to add a lap timer?
   void btnTapme(){
     setState(() {
       if(textButton == 'Start')
       {
-        _counter=5;
+        _counter=10;
         textButton = 'Tap me!';
         timing();
       }
@@ -36,12 +52,12 @@ class _MyAppState extends State<MyApp> {
         {
           score++;
           tap = 0;
-          _counter = 5;
+          _counter = 10;
         }
       }
       else if(textButton=='Continue')
       {
-        timer?.cancel();
+        _timer?.cancel();
         textButton='Restart';
       }
       else if(textButton=='Restart')
@@ -54,15 +70,16 @@ class _MyAppState extends State<MyApp> {
   
   void timing(){
     int i =4;
-    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
         if(_counter>0)
         {
           _counter--;
+          timedDuration = Duration(seconds: _counter);
         }
         else
         {
-          _counter=5;
+          _counter=10;
           tap = 0;
           timeOut[i] = false;
           i--;
@@ -79,114 +96,112 @@ class _MyAppState extends State<MyApp> {
   
   void restart(){
     score =0;
-    _counter = 5;
+    _counter = 10;
     timeOut = [true,true,true,true,true];
   }
   @override
-  void initState(){
-    _counter = 5;
-    tap = 0;
-    score=0;
-    timeOut=[true,true,true,true,true];
+  void initState() {
+    score = 0;
+    _counter = 10;
+    timeOut = [true,true,true,true,true];
+    tap =0;
     super.initState();
   }
+  @override
   Widget build(BuildContext context) {
-    Widget timeAndTap = Container(
-      child: 
-      Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text("Time : ",
-              style: TextStyle(
-                fontSize: 32,
-              ),),
-              Text(_counter.toString(),
-              style: TextStyle(
-                fontSize: 32,
-              ),),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text("Tap : ",
-              style: TextStyle(
-                fontSize: 32,
-                color: Colors.purple,
-              ),),
-              Text(tap.toString(),
-              style: TextStyle(
-                fontSize: 32,
-                color: Colors.purple,
-              ),),
-            ],
-          )
-      ] 
+    return Scaffold(
+      appBar: AppBar(
+        // Here we take the value from the MyHomePage object that was created by
+        // the App.build method, and use it to set our appbar title.
+        title: Text(widget.title),
       ),
-    );
-    Widget life = Container(
-    padding: const EdgeInsets.all(20),
-    child: 
-    Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        for(int i =0;i<timeOut.length;i++)
-        Icon(
-          timeOut[i]? Icons.favorite : Icons.favorite_border,
-          color: timeOut[i]? Colors.red: null,
-          size: 64,
-        ),
-      ],
-    ),
-  );
-    Widget Diem = Container(
-    padding: const EdgeInsets.all(20) ,
-    child: 
-    Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Text(
-          "Score :",
-          style: TextStyle(
-            fontSize: 64,
-            color: Colors.red,
-          ),
-        ),
-        Text(
-          score.toString(),
-          style: TextStyle(
-            fontSize: 64,
-            color: Colors.red,
-          ),
-        ),
-      ],
-    ),
-  );
-    return MaterialApp(
-      title: "TapTap",
-      theme: ThemeData(scaffoldBackgroundColor: Colors.blue),
-      home: Scaffold(
-        appBar: AppBar(
-          centerTitle: true,
-          title: Text("TapTap"),
-          backgroundColor: Colors.blue[600],
-        ),
-        body: Center(
-          child: Column(
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Diem,
-                  life,
-                ],   
+      body: Center(
+        // Center is a layout widget. It takes a single child and positions it
+        // in the middle of the parent.
+        child: Stack(
+          fit: StackFit.loose,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(30),
+              child: Center(
+                child: 
+                  AspectRatio(
+                    child: CircularProgressIndicator(
+                      // backgroundColor: Colors.black,
+                      strokeWidth: 20,
+                      // Below, we work out the progress for the circular progress indicator
+                      // We do so by getting the total amount of seconds so far, and then
+                      // we use the .remainder function to get only the seconds component of the
+                      // current minute being counted. We then divide it by 60 to work out how far
+                      // through the progress should be (so, 30 would be 0.5, or 50% of a minute)
+                      value: _counter.remainder(10) / 10,
+                    ),
+                    aspectRatio: 1,
+                  ),
               ),
-              timeAndTap,
-              ElevatedButton(
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      "Score :",
+                      style: TextStyle(
+                        fontSize: 32,
+                        color: Colors.red,
+                      ),
+                    ),
+                    Text(
+                      score.toString(),
+                      style: TextStyle(
+                        fontSize: 32,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    for(int i =0;i<timeOut.length;i++)
+                    Icon(
+                      timeOut[i]? Icons.favorite : Icons.favorite_border,
+                      color: timeOut[i]? Colors.red: null,
+                      size: 32,
+                    ),
+                  ],
+                ), 
+              ],
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  timedDuration.inSeconds.remainder(60).toString().padLeft(2, '0'),
+                  style: Theme.of(context).textTheme.headline1,
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("Tap : ",
+                style: TextStyle(
+                  fontSize: 32,
+                  color: Colors.purple,
+                ),),
+                Text(tap.toString(),
+                style: TextStyle(
+                  fontSize: 32,
+                  color: Colors.purple,
+                ),),
+              ],
+            ),
+            ElevatedButton(
                 onPressed: btnTapme,
                 style: ElevatedButton.styleFrom(
                   primary: Colors.red[300], //background color of button
@@ -200,8 +215,9 @@ class _MyAppState extends State<MyApp> {
                 ),
                 child: Text(textButton), 
               )
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
     );
